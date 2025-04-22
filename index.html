@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Dictation Practice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .action-button {
+            padding: 0.6rem 1rem;
+            margin: 0.25rem;
+        }
+        .feedback {
+            transition: opacity 0.3s ease-in-out;
+            min-height: 1.25rem; /* Ensure space for feedback text */
+        }
+        .hidden-fade {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0s 0.5s;
+        }
+        .visible-fade {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease;
+        }
+        /* Style for showing incorrect spelling in input */
+        .input-error-display {
+            color: red !important;
+            border-color: red !important;
+            font-weight: bold;
+            background-color: #fee2e2; /* Light red background */
+        }
+         /* Style for showing correct spelling in input (blue) */
+         .input-correct-display {
+            color: blue !important;
+            border-color: blue !important;
+            font-weight: bold;
+            background-color: #e0f2fe; /* Light blue background */
+        }
+        /* Smaller icon button */
+        .icon-button {
+             padding: 0.5rem; /* Smaller padding */
+             display: inline-flex; /* Align icon nicely */
+             align-items: center;
+             justify-content: center;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <div class="max-w-xl w-full mx-auto bg-white p-6 rounded-lg shadow-md">
+
+        <div id="dictation-area" class="visible-fade">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Dictation Practice</h1>
+            <div id="word-container" class="space-y-4">
+                <div class="text-center text-gray-500">Loading...</div>
+            </div>
+            <div id="tts-error" class="text-center text-red-600 mt-4 hidden">Sorry, your browser does not support text-to-speech.</div>
+        </div>
+
+        <div id="results-area" class="hidden-fade text-center">
+            <h1 id="results-title" class="text-2xl font-bold text-green-600 mb-4">Congratulations!</h1>
+            <p id="results-message" class="text-lg text-gray-700 mb-2">You've completed the dictation.</p>
+            <div class="bg-gray-100 p-4 rounded-md space-y-2">
+                <p>Total words: <strong id="total-words">0</strong></p>
+                <p>Correct words: <strong id="correct-count" class="text-green-700">0</strong></p>
+                <p>Incorrect attempts (Retries): <strong id="retry-count" class="text-red-700">0</strong></p> <p>Skipped words: <strong id="skipped-count" class="text-orange-700">0</strong></p>
+                <div id="skipped-list-container" class="mt-3 hidden">
+                    <p class="font-semibold text-gray-600">Words you skipped:</p>
+                    <ul id="skipped-list" class="list-disc list-inside text-left text-sm text-gray-500 max-w-xs mx-auto">
+                        </ul>
+                </div>
+            </div>
+             <button id="restart-button" class="mt-6 action-button bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition duration-150 ease-in-out">
+                Practice Again
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration ---
+            const initialWords = [
+                "takes her bag", "elephant", "sandwich", "another", "giraffe",
+                "dress", "cupboard", "there is", "classroom"
+            ];
+            const CORRECT_FEEDBACK_DELAY = 2000; // ms
+            const INCORRECT_FLASH_INTERVAL = 700; // ms for each flash
+            const INCORRECT_FLASH_COUNT = 4; // Total flashes (2 red, 2 blue)
+
+            // --- State Variables ---
+            let words = [];
+            let currentWordIndex = 0;
+            let correctCount = 0;
+            let retryCount = 0; // Added retry counter
+            let skippedWords = [];
+            let synth;
+            let chime;
+            let victoryMelody;
+            let feedbackIntervalId = null; // To store the interval ID for clearing
+
+            // --- DOM Elements ---
+            const wordContainer = document.getElementById('word-container');
+            const ttsError = document.getElementById('tts-error');
+            const dictationArea = document.getElementById('dictation-area');
+            const resultsArea = document.getElementById('results-area');
+            const totalWordsEl = document.getElementById('total-words');
+            const correctCountEl = document.getElementById('correct-count');
+            const retryCountEl = document.getElementById('retry-count'); // Added retry count element
+            const skippedCountEl = document.getElementById('skipped-count');
+            const skippedListContainer = document.getElementById('skipped-list-container');
+            const skippedListEl = document.getElementById('skipped-list');
+            const restartButton = document.getElementById('restart-button');
+            const resultsTitle = document.getElementById('results-title');
+            const resultsMessage = document.getElementById('results-message');
+
+            // --- Initialization ---
+            function initializeApp() {
+                // Stop any ongoing audio/intervals
+                if (synth && synth.speaking) synth.cancel();
+                if (Tone.Transport.state === 'started') {
+                     Tone.Transport.stop();
+                     Tone.Transport.cancel();
+                 }
+                if (feedbackIntervalId) {
+                    clearInterval(feedbackIntervalId); // Clear any leftover interval
+                    feedbackIntervalId = null;
+                }
+
+                // Reset state
+                currentWordIndex = 0;
+                correctCount = 0;
+                retryCount = 0; // Reset retry count
+                skippedWords = [];
+
+                // Reset UI
+                dictationArea.classList.remove('hidden-fade');
+                dictationArea.classList.add('visible-fade');
+                resultsArea.classList.add('hidden-fade');
+                resultsArea.classList.remove('visible-fade');
+                wordContainer.innerHTML = '<div class="text-center text-gray-500">Loading...</div>';
+
+                // Initialize Speech Synthesis
+                if ('speechSynthesis' in window) {
+                    synth = window.speechSynthesis;
+                    synth.getVoices();
+                    if (speechSynthesis.onvoiceschanged !== undefined) {
+                        speechSynthesis.onvoiceschanged = () => synth.getVoices();
+                    }
+                } else {
+                    ttsError.classList.remove('hidden');
+                    wordContainer.innerHTML = '';
+                    return;
+                }
+
+                // Initialize Tone.js (attempt to start context early)
+                startAudioContext(); // Call early
+                try {
+                    chime = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.2 } }).toDestination();
+                    const melodySynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.02, decay: 0.2, sustain: 0.2, release: 0.5 } }).toDestination();
+                    const melodyNotes = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
+                    victoryMelody = new Tone.Sequence((time, note) => { melodySynth.triggerAttackRelease(note, "8n", time); }, melodyNotes, "8n");
+                    victoryMelody.loop = false;
+                } catch (error) {
+                    console.error("Could not initialize Tone.js:", error);
+                    chime = null; victoryMelody = null;
+                }
+
+                // Start the dictation
+                words = shuffleArray([...initialWords]);
+                totalWordsEl.textContent = words.length;
+                displayWord(currentWordIndex);
+            }
+
+            // --- Core Logic Functions ---
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            async function startAudioContext() {
+                // Safely attempts to start the Tone.js audio context if not running
+                if (Tone.context.state !== 'running') {
+                    try { await Tone.start(); console.log("AudioContext started."); }
+                    catch (e) { console.error("Error starting AudioContext:", e); }
+                }
+            }
+
+            function speakWord(wordToSpeak) {
+                startAudioContext().then(() => { // Ensure context is running before speaking
+                    if (synth && synth.speaking) {
+                        synth.cancel(); // Cancel previous speech if any
+                         // Short delay to allow cancellation to register
+                         setTimeout(() => {
+                            const utterThis = new SpeechSynthesisUtterance(wordToSpeak);
+                            utterThis.onerror = (event) => console.error('SpeechSynthesisUtterance.onerror', event);
+                            synth.speak(utterThis);
+                         }, 50);
+                    } else if (synth) {
+                        const utterThis = new SpeechSynthesisUtterance(wordToSpeak);
+                        utterThis.onerror = (event) => console.error('SpeechSynthesisUtterance.onerror', event);
+                        synth.speak(utterThis);
+                    }
+                });
+            }
+
+             function playChime() {
+                 startAudioContext().then(() => {
+                     if (chime && Tone.context.state === 'running') {
+                        try { chime.triggerAttackRelease("C5", "8n", Tone.now()); }
+                        catch (error) { console.error("Error playing chime:", error); }
+                    }
+                 });
+            }
+
+             function playVictoryMelody() {
+                 startAudioContext().then(() => {
+                    if (victoryMelody && Tone.context.state === 'running') {
+                        try {
+                            if (Tone.Transport.state !== 'started') Tone.Transport.start();
+                            victoryMelody.start(0);
+                             const duration = Tone.Time(victoryMelody.duration).toSeconds();
+                             Tone.Transport.scheduleOnce(() => {
+                                 if (Tone.Transport.state === 'started') {
+                                     Tone.Transport.stop(); Tone.Transport.cancel();
+                                 }
+                             }, `+${duration + 0.2}`);
+                        } catch (error) {
+                            console.error("Error playing victory melody:", error);
+                            if (Tone.Transport.state === 'started') { Tone.Transport.stop(); Tone.Transport.cancel(); }
+                        }
+                    }
+                 });
+            }
+
+            // Function to display the current word and controls
+            function displayWord(index) {
+                wordContainer.innerHTML = ''; // Clear previous word
+
+                // Check if dictation is complete
+                if (index >= words.length) {
+                    showResults();
+                    return;
+                }
+
+                const word = words[index];
+
+                // --- Create DOM Elements ---
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'dictation-item border border-gray-200 p-4 rounded-md flex flex-col items-center gap-3';
+
+                // Container for Replay Button and Input Field
+                const inputRow = document.createElement('div');
+                inputRow.className = 'flex items-center gap-2 w-full max-w-md justify-center';
+
+                // Replay Button (Icon Only)
+                const playButton = document.createElement('button');
+                playButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>`;
+                playButton.className = 'icon-button flex-shrink-0 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition duration-150 ease-in-out';
+                playButton.setAttribute('aria-label', `Replay Word ${index + 1}`);
+                playButton.onclick = () => speakWord(word);
+                playButton.disabled = false;
+
+                // Input Field
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.placeholder = 'Type what you hear...';
+                textInput.className = 'flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-300 min-w-0';
+                textInput.setAttribute('aria-label', `Input for word ${index + 1}`);
+                textInput.disabled = false;
+
+                inputRow.appendChild(playButton);
+                inputRow.appendChild(textInput);
+
+                // Feedback Area
+                const feedbackSpan = document.createElement('span');
+                feedbackSpan.className = 'feedback text-sm font-medium h-6 flex items-center justify-center';
+                feedbackSpan.setAttribute('aria-live', 'polite');
+
+                 // Container for Check and Skip buttons
+                 const buttonContainer = document.createElement('div');
+                 buttonContainer.className = 'flex flex-wrap justify-center gap-2 mt-2';
+
+                // Check Button
+                const checkButton = document.createElement('button');
+                checkButton.textContent = 'Check';
+                checkButton.className = 'action-button bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-150 ease-in-out';
+                checkButton.disabled = false;
+
+                // Skip Button
+                const skipButton = document.createElement('button');
+                skipButton.textContent = 'Skip';
+                skipButton.className = 'action-button bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300 transition duration-150 ease-in-out';
+                skipButton.disabled = false;
+
+                 // --- Event Handlers ---
+                const handleCheck = () => {
+                    if (checkButton.disabled) return; // Prevent check if disabled
+                    startAudioContext(); // Ensure context is running
+                    checkSpelling(textInput, feedbackSpan, word, checkButton, skipButton, playButton);
+                 };
+
+                 const handleSkip = () => {
+                     if (skipButton.disabled) return; // Prevent skip if disabled
+                    startAudioContext();
+                    skippedWords.push(word);
+                    currentWordIndex++;
+                    displayWord(currentWordIndex);
+                 };
+
+                checkButton.onclick = handleCheck;
+                skipButton.onclick = handleSkip;
+
+                textInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter' && !checkButton.disabled) {
+                        event.preventDefault();
+                        handleCheck();
+                    }
+                });
+
+                textInput.addEventListener('input', () => {
+                    // Clear feedback only if controls are enabled (not during feedback animation)
+                    if (!checkButton.disabled) {
+                        feedbackSpan.textContent = '';
+                        feedbackSpan.classList.remove('text-green-600', 'text-red-600', 'text-yellow-600');
+                    }
+                });
+
+                // --- Append Elements to DOM ---
+                itemDiv.appendChild(inputRow);
+                itemDiv.appendChild(feedbackSpan);
+                buttonContainer.appendChild(checkButton);
+                buttonContainer.appendChild(skipButton);
+                itemDiv.appendChild(buttonContainer);
+
+                wordContainer.appendChild(itemDiv);
+
+                // --- Autoplay and Focus ---
+                setTimeout(() => {
+                     if(synth) { // Check synth exists before calling speakWord
+                         speakWord(word);
+                     }
+                     textInput.focus(); // Focus input after short delay
+                }, 150); // Delay helps ensure elements are rendered and context might be ready
+            }
+
+            // Function to check spelling and handle the outcome
+            function checkSpelling(inputElement, feedbackElement, correctWord, checkBtn, skipBtn, playBtn) {
+                // Prevent checking if already processing feedback
+                if (inputElement.disabled) return;
+
+                const userInputRaw = inputElement.value.trim(); // Keep raw input for display
+                const normalizedCorrectWord = correctWord.toLowerCase().replace(/\s+/g, ' ');
+                const normalizedUserInput = userInputRaw.toLowerCase().replace(/\s+/g, ' ');
+
+                feedbackElement.classList.remove('text-green-600', 'text-red-600', 'text-yellow-600');
+
+                if (normalizedUserInput === normalizedCorrectWord) {
+                    // --- CORRECT ---
+                    feedbackElement.textContent = 'Correct!';
+                    feedbackElement.classList.add('text-green-600');
+                    correctCount++;
+                    playChime();
+
+                    // Disable controls temporarily
+                    inputElement.disabled = true;
+                    checkBtn.disabled = true;
+                    skipBtn.disabled = true;
+                    playBtn.disabled = true;
+
+                    // Advance after delay
+                    setTimeout(() => {
+                        currentWordIndex++;
+                        displayWord(currentWordIndex);
+                    }, CORRECT_FEEDBACK_DELAY);
+
+                } else if (userInputRaw === '') {
+                    // --- EMPTY INPUT ---
+                    feedbackElement.textContent = 'Please type the word.';
+                    feedbackElement.classList.add('text-yellow-600');
+                    inputElement.focus();
+
+                } else {
+                    // --- INCORRECT ---
+                    retryCount++; // Increment retry counter
+                    feedbackElement.textContent = 'Incorrect. Try again!';
+                    feedbackElement.classList.add('text-red-600');
+
+                    // Disable controls during feedback animation
+                    inputElement.disabled = true;
+                    checkBtn.disabled = true;
+                    skipBtn.disabled = true;
+                    playBtn.disabled = true;
+
+                    let flashCounter = 0;
+                    // Start alternating display using setInterval
+                    feedbackIntervalId = setInterval(() => {
+                        flashCounter++;
+                        if (flashCounter > INCORRECT_FLASH_COUNT) {
+                            // --- End of Flashing ---
+                            clearInterval(feedbackIntervalId); // Stop the interval
+                            feedbackIntervalId = null;
+                            inputElement.classList.remove('input-error-display', 'input-correct-display'); // Clear styles
+                            inputElement.value = ''; // Clear the input field
+                            feedbackElement.textContent = ''; // Clear feedback text
+                            feedbackElement.classList.remove('text-red-600'); // Clear feedback color
+
+                            // Re-enable controls
+                            inputElement.disabled = false;
+                            checkBtn.disabled = false;
+                            skipBtn.disabled = false;
+                            playBtn.disabled = false;
+                            inputElement.focus(); // Set focus back to input
+
+                        } else if (flashCounter % 2 !== 0) {
+                            // --- Show Incorrect (Red) ---
+                            inputElement.value = userInputRaw; // Show user's wrong input
+                            inputElement.classList.remove('input-correct-display');
+                            inputElement.classList.add('input-error-display');
+                        } else {
+                            // --- Show Correct (Blue) ---
+                            inputElement.value = correctWord; // Show the correct word
+                            inputElement.classList.remove('input-error-display');
+                            inputElement.classList.add('input-correct-display');
+                        }
+                    }, INCORRECT_FLASH_INTERVAL); // Run every interval duration
+                }
+            }
+
+            // Function to display the final results page
+            function showResults() {
+                dictationArea.classList.remove('visible-fade');
+                dictationArea.classList.add('hidden-fade');
+
+                // Update result counts
+                correctCountEl.textContent = correctCount;
+                retryCountEl.textContent = retryCount; // Display retry count
+                skippedCountEl.textContent = skippedWords.length;
+
+                // Populate skipped words list
+                skippedListEl.innerHTML = '';
+                if (skippedWords.length > 0) {
+                    skippedWords.forEach(word => {
+                        const li = document.createElement('li');
+                        li.textContent = word;
+                        skippedListEl.appendChild(li);
+                    });
+                    skippedListContainer.classList.remove('hidden');
+                } else {
+                    skippedListContainer.classList.add('hidden');
+                }
+
+                 // Check for perfect score (all correct, none skipped)
+                 const isPerfect = correctCount === words.length && skippedWords.length === 0;
+                 if (isPerfect) {
+                     resultsTitle.textContent = "Perfect Score!";
+                     resultsMessage.textContent = "Amazing job! You got everything right.";
+                     resultsTitle.classList.remove('text-green-600');
+                     resultsTitle.classList.add('text-yellow-500'); // Golden color
+                     playVictoryMelody();
+                 } else {
+                     resultsTitle.textContent = "Good Effort!";
+                     resultsMessage.textContent = "You've completed the dictation.";
+                     resultsTitle.classList.remove('text-yellow-500');
+                     resultsTitle.classList.add('text-green-600'); // Default green
+                 }
+
+                 // Show results area after delay
+                 setTimeout(() => {
+                    resultsArea.classList.remove('hidden-fade');
+                    resultsArea.classList.add('visible-fade');
+                 }, 500);
+            }
+
+             // Restart button functionality
+             restartButton.onclick = () => {
+                 initializeApp(); // Re-initialize the app
+             };
+
+            // --- Start the Application ---
+            initializeApp();
+
+        });
+    </script>
+
+</body>
+</html>
