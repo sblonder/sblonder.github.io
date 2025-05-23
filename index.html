@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1001.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -96,13 +97,40 @@
         .results-content {
             padding: 1rem;
         }
+        /* Celebration animations */
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+        .success-emoji {
+            font-size: 2rem;
+            margin: 0.5rem;
+            display: inline-block;
+        }
+        .success-emoji.animate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+        /* Fireworks container */
+        #fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-4 md:p-8 flex items-center justify-center min-h-screen">
-
+    <div id="fireworks-container"></div>
     <!-- Add Configuration Modal -->
     <div id="config-modal" class="modal">
         <div class="modal-content">
@@ -190,7 +218,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Configuration ---
-            const initialWords = ["mother duck", "beautiful", "ugly", "very", "go away", "walks", "little girl", "boys"];
+            const initialWords = ["mother duck", "beautiful"] //, "ugly", "very", "go away", "walks", "little girl", "boys"];
 
             // AWS Configuration
             AWS.config.region = 'us-east-1'; // Replace with your preferred region
@@ -222,6 +250,8 @@
             let victoryMelody;
             let feedbackIntervalId = null;
             let audioCache = new Map(); // Cache for audio files
+            let firstAttemptSuccesses = new Set(); // Track words succeeded on first attempt
+            let wordAttempts = new Map(); // Track number of attempts per word
 
             // --- DOM Elements ---
             const wordContainer = document.getElementById('word-container');
@@ -265,6 +295,8 @@
                 correctCount = 0;
                 retryCount = 0;
                 skippedWords = [];
+                firstAttemptSuccesses.clear(); // Clear first attempt tracking
+                wordAttempts.clear(); // Clear attempt tracking
                 audioCache.clear(); // Clear the audio cache
 
                 // Reset UI
@@ -500,12 +532,47 @@
                 const normalizedCorrectWord = correctWord.toLowerCase().replace(/\s+/g, ' ');
                 const normalizedUserInput = userInputRaw.toLowerCase().replace(/\s+/g, ' ');
 
+                // Track attempt for this word
+                const currentAttempts = (wordAttempts.get(currentWordIndex) || 0) + 1;
+                wordAttempts.set(currentWordIndex, currentAttempts);
+
                 feedbackElement.classList.remove('text-green-600', 'text-red-600', 'text-yellow-600');
 
                 if (normalizedUserInput === normalizedCorrectWord) {
                     // --- CORRECT ---
-                    feedbackElement.textContent = 'Correct!';
-                    feedbackElement.classList.add('text-green-600');
+                    const isFirstAttempt = currentAttempts === 1;
+                    if (isFirstAttempt) {
+                        firstAttemptSuccesses.add(currentWordIndex);
+                        feedbackElement.innerHTML = 'Perfect! First try! 🎉';
+
+                        // Trigger mini celebration only for first attempts
+                        const duration = 3 * 1000;
+                        const animationEnd = Date.now() + duration;
+                        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                        function randomInRange(min, max) {
+                            return Math.random() * (max - min) + min;
+                        }
+
+                        const interval = setInterval(function() {
+                            const timeLeft = animationEnd - Date.now();
+
+                            if (timeLeft <= 0) {
+                                return clearInterval(interval);
+                            }
+
+                            const particleCount = 50 * (timeLeft / duration);
+                            confetti({
+                                ...defaults,
+                                particleCount,
+                                origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+                            });
+                        }, 250);
+                    } else {
+                        feedbackElement.innerHTML = 'Correct!';
+                    }
+
+                    feedbackElement.classList.add('text-green-600', 'celebrate');
                     correctCount++;
                     playChime();
 
@@ -597,26 +664,81 @@
                     skippedListContainer.classList.add('hidden');
                 }
 
-                 // Check for perfect score (all correct, none skipped)
-                 const isPerfect = correctCount === words.length && skippedWords.length === 0;
-                 if (isPerfect) {
-                     resultsTitle.textContent = "Perfect Score!";
-                     resultsMessage.textContent = "Amazing job! You got everything right.";
-                     resultsTitle.classList.remove('text-green-600');
-                     resultsTitle.classList.add('text-yellow-500'); // Golden color
-                     playVictoryMelody();
-                 } else {
-                     resultsTitle.textContent = "Good Effort!";
-                     resultsMessage.textContent = "You've completed the dictation.";
-                     resultsTitle.classList.remove('text-yellow-500');
-                     resultsTitle.classList.add('text-green-600'); // Default green
-                 }
+                // Check for perfect score (all correct, no skips, no retries)
+                const isPerfect = correctCount === words.length && skippedWords.length === 0 && retryCount === 0;
+                const allFirstAttempt = firstAttemptSuccesses.size === words.length;
 
-                 // Show results area after delay
-                 setTimeout(() => {
+                if (isPerfect) {
+                    if (allFirstAttempt) {
+                        resultsTitle.innerHTML = "Perfect Score! 🏆";
+                        resultsMessage.innerHTML = "You got everything right on the first try! 🌟";
+                    } else {
+                        resultsTitle.innerHTML = "Good Job! 🏆";
+                        resultsMessage.innerHTML = "You got everything right! 🌟";
+                    }
+                    resultsTitle.classList.remove('text-green-600');
+                    resultsTitle.classList.add('text-yellow-500'); // Golden color
+                    playVictoryMelody();
+
+                    // Trigger grand celebration
+                    const duration = 5 * 1000;
+                    const animationEnd = Date.now() + duration;
+                    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                    function randomInRange(min, max) {
+                        return Math.random() * (max - min) + min;
+                    }
+
+                    const interval = setInterval(function() {
+                        const timeLeft = animationEnd - Date.now();
+
+                        if (timeLeft <= 0) {
+                            return clearInterval(interval);
+                        }
+
+                        const particleCount = 50 * (timeLeft / duration);
+
+                        // Launch fireworks from multiple points
+                        confetti({
+                            ...defaults,
+                            particleCount,
+                            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                        });
+                        confetti({
+                            ...defaults,
+                            particleCount,
+                            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                        });
+                        confetti({
+                            ...defaults,
+                            particleCount,
+                            origin: { x: randomInRange(0.4, 0.6), y: Math.random() - 0.2 }
+                        });
+                    }, 250);
+                } else {
+                    // Good job message with different variations based on performance
+                    if (skippedWords.length > 0 && retryCount > 0) {
+                        resultsTitle.innerHTML = "Good Job! 👏";
+                        resultsMessage.innerHTML = `You completed the dictation with ${retryCount} retries and ${skippedWords.length} skipped words. Keep practicing! 💪`;
+                    } else if (skippedWords.length > 0) {
+                        resultsTitle.innerHTML = "Good Job! 👏";
+                        resultsMessage.innerHTML = `You completed the dictation with ${skippedWords.length} skipped words. Try to spell all words next time! 💪`;
+                    } else if (retryCount > 0) {
+                        resultsTitle.innerHTML = "Good Job! 👏";
+                        resultsMessage.innerHTML = `You completed the dictation with ${retryCount} retries. Try to get them all on the first try! 💪`;
+                    } else {
+                        resultsTitle.innerHTML = "Good Job! 👏";
+                        resultsMessage.innerHTML = "You've completed the dictation. Keep practicing! 💪";
+                    }
+                    resultsTitle.classList.remove('text-yellow-500');
+                    resultsTitle.classList.add('text-green-600'); // Default green
+                }
+
+                // Show results area after delay
+                setTimeout(() => {
                     resultsArea.classList.remove('hidden-fade');
                     resultsArea.classList.add('visible-fade');
-                 }, 500);
+                }, 500);
             }
 
              // Restart button functionality
