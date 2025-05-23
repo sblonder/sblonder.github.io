@@ -449,6 +449,11 @@
                 textInput.className = 'flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-300 min-w-0';
                 textInput.setAttribute('aria-label', `Input for word ${index + 1}`);
                 textInput.disabled = false;
+                // Disable autocomplete, autocorrect, and other similar features
+                textInput.setAttribute('autocomplete', 'off');
+                textInput.setAttribute('autocorrect', 'off');
+                textInput.setAttribute('autocapitalize', 'off');
+                textInput.setAttribute('spellcheck', 'false');
 
                 inputRow.appendChild(playButton);
                 inputRow.appendChild(textInput);
