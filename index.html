@@ -50,6 +50,36 @@
              align-items: center;
              justify-content: center;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .close-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .close-button:hover {
+            color: #000;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,10 +87,61 @@
 </head>
 <body class="bg-gray-100 p-4 md:p-8 flex items-center justify-center min-h-screen">
 
+    <!-- Add Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="text-xl font-bold mb-4">Voice Settings</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-1">Voice</label>
+                    <select id="voice-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <optgroup label="Female Voices">
+                            <option value="Danielle">Danielle</option>
+                            <option value="Joanna">Joanna</option>
+                            <option value="Kendra">Kendra</option>
+                            <option value="Kimberly">Kimberly</option>
+                            <option value="Salli">Salli</option>
+                            <option value="Ruth">Ruth</option>
+                        </optgroup>
+                        <optgroup label="Male Voices">
+                            <option value="Gregory">Gregory</option>
+                            <option value="Joey">Joey</option>
+                            <option value="Matthew">Matthew</option>
+                            <option value="Stephen">Stephen</option>
+                            <option value="Patrick">Patrick</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label for="rate-select" class="block text-sm font-medium text-gray-700 mb-1">Speaking Rate</label>
+                    <select id="rate-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="x-slow">Very Slow</option>
+                        <option value="slow">Slow</option>
+                        <option value="medium">Medium</option>
+                        <option value="fast">Fast</option>
+                        <option value="x-fast">Very Fast</option>
+                    </select>
+                </div>
+                <button id="save-config" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-xl w-full mx-auto bg-white p-6 rounded-lg shadow-md">
 
         <div id="dictation-area" class="visible-fade">
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Dictation Practice</h1>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Dictation Practice</h1>
+                <button id="config-button" class="icon-button bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+            </div>
             <div id="word-container" class="space-y-4">
                 <div class="text-center text-gray-500">Loading...</div>
             </div>
@@ -106,6 +187,12 @@
             const INCORRECT_FLASH_INTERVAL = 700; // ms for each flash
             const INCORRECT_FLASH_COUNT = 4; // Total flashes (2 red, 2 blue)
 
+            // Load saved configuration or use defaults
+            const savedConfig = JSON.parse(localStorage.getItem('ttsConfig')) || {
+                voiceId: 'Joey',
+                rate: 'slow'
+            };
+
             // --- State Variables ---
             let words = [];
             let currentWordIndex = 0;
@@ -131,6 +218,16 @@
             const restartButton = document.getElementById('restart-button');
             const resultsTitle = document.getElementById('results-title');
             const resultsMessage = document.getElementById('results-message');
+            const modal = document.getElementById('config-modal');
+            const configButton = document.getElementById('config-button');
+            const closeButton = document.querySelector('.close-button');
+            const voiceSelect = document.getElementById('voice-select');
+            const rateSelect = document.getElementById('rate-select');
+            const saveConfigButton = document.getElementById('save-config');
+
+            // Set initial values from saved config
+            voiceSelect.value = savedConfig.voiceId;
+            rateSelect.value = savedConfig.rate;
 
             // --- Initialization ---
             function initializeApp() {
@@ -205,9 +302,9 @@
 
                     // Request speech synthesis from Polly
                     const params = {
-                        Text: `<speak><prosody rate="slow">${wordToSpeak}</prosody></speak>`,
+                        Text: `<speak><prosody rate="${savedConfig.rate}">${wordToSpeak}</prosody></speak>`,
                         OutputFormat: 'mp3',
-                        VoiceId: 'Joey',
+                        VoiceId: savedConfig.voiceId,
                         Engine: 'neural',
                         TextType: 'ssml' // Using SSML to control speech rate
                     };
@@ -507,6 +604,33 @@
              restartButton.onclick = () => {
                  initializeApp(); // Re-initialize the app
              };
+
+            // Modal event handlers
+            configButton.onclick = () => {
+                modal.style.display = 'block';
+            };
+
+            closeButton.onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            saveConfigButton.onclick = () => {
+                const newConfig = {
+                    voiceId: voiceSelect.value,
+                    rate: rateSelect.value
+                };
+                // Update the savedConfig object immediately
+                Object.assign(savedConfig, newConfig);
+                localStorage.setItem('ttsConfig', JSON.stringify(newConfig));
+                audioCache.clear(); // Clear cache when settings change
+                modal.style.display = 'none';
+            };
 
             // --- Start the Application ---
             initializeApp();
