@@ -6,6 +6,7 @@
     <title>Advanced Dictation Practice</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1001.0.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -89,8 +90,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Configuration ---
-            // const initialWords = ["takes her bag", "elephant", "sandwich", "another", "giraffe", "dress", "cupboard", "there is", "classroom"];
             const initialWords = ["mother duck", "beautiful", "ugly", "very", "go away", "walks", "little girl", "boys"];
+
+            // AWS Configuration
+            AWS.config.region = 'us-east-1'; // Replace with your preferred region
+            AWS.config.credentials = new AWS.Credentials({
+                accessKeyId: 'AKIARQJDUE4XTZMHYO3M', // Replace with your AWS access key
+                secretAccessKey: 'MgmVTXSuvFLFaudc0H6cGW5aJFs7in1H10l71ptA' // Replace with your AWS secret key
+            });
+
+            const polly = new AWS.Polly();
+            const s3 = new AWS.S3();
 
             const CORRECT_FEEDBACK_DELAY = 2000; // ms
             const INCORRECT_FLASH_INTERVAL = 700; // ms for each flash
@@ -100,12 +110,12 @@
             let words = [];
             let currentWordIndex = 0;
             let correctCount = 0;
-            let retryCount = 0; // Added retry counter
+            let retryCount = 0;
             let skippedWords = [];
-            let synth;
             let chime;
             let victoryMelody;
-            let feedbackIntervalId = null; // To store the interval ID for clearing
+            let feedbackIntervalId = null;
+            let audioCache = new Map(); // Cache for audio files
 
             // --- DOM Elements ---
             const wordContainer = document.getElementById('word-container');
@@ -114,7 +124,7 @@
             const resultsArea = document.getElementById('results-area');
             const totalWordsEl = document.getElementById('total-words');
             const correctCountEl = document.getElementById('correct-count');
-            const retryCountEl = document.getElementById('retry-count'); // Added retry count element
+            const retryCountEl = document.getElementById('retry-count');
             const skippedCountEl = document.getElementById('skipped-count');
             const skippedListContainer = document.getElementById('skipped-list-container');
             const skippedListEl = document.getElementById('skipped-list');
@@ -125,7 +135,6 @@
             // --- Initialization ---
             function initializeApp() {
                 // Stop any ongoing audio/intervals
-                if (synth && synth.speaking) synth.cancel();
                 if (Tone.Transport.state === 'started') {
                      Tone.Transport.stop();
                      Tone.Transport.cancel();
@@ -138,8 +147,9 @@
                 // Reset state
                 currentWordIndex = 0;
                 correctCount = 0;
-                retryCount = 0; // Reset retry count
+                retryCount = 0;
                 skippedWords = [];
+                audioCache.clear(); // Clear the audio cache
 
                 // Reset UI
                 dictationArea.classList.remove('hidden-fade');
@@ -147,19 +157,6 @@
                 resultsArea.classList.add('hidden-fade');
                 resultsArea.classList.remove('visible-fade');
                 wordContainer.innerHTML = '<div class="text-center text-gray-500">Loading...</div>';
-
-                // Initialize Speech Synthesis
-                if ('speechSynthesis' in window) {
-                    synth = window.speechSynthesis;
-                    synth.getVoices();
-                    if (speechSynthesis.onvoiceschanged !== undefined) {
-                        speechSynthesis.onvoiceschanged = () => synth.getVoices();
-                    }
-                } else {
-                    ttsError.classList.remove('hidden');
-                    wordContainer.innerHTML = '';
-                    return;
-                }
 
                 // Initialize Tone.js (attempt to start context early)
                 startAudioContext(); // Call early
@@ -197,22 +194,44 @@
                 }
             }
 
-            function speakWord(wordToSpeak) {
-                startAudioContext().then(() => { // Ensure context is running before speaking
-                    if (synth && synth.speaking) {
-                        synth.cancel(); // Cancel previous speech if any
-                         // Short delay to allow cancellation to register
-                         setTimeout(() => {
-                            const utterThis = new SpeechSynthesisUtterance(wordToSpeak);
-                            utterThis.onerror = (event) => console.error('SpeechSynthesisUtterance.onerror', event);
-                            synth.speak(utterThis);
-                         }, 50);
-                    } else if (synth) {
-                        const utterThis = new SpeechSynthesisUtterance(wordToSpeak);
-                        utterThis.onerror = (event) => console.error('SpeechSynthesisUtterance.onerror', event);
-                        synth.speak(utterThis);
+            async function speakWord(wordToSpeak) {
+                try {
+                    // Check if we have cached audio
+                    if (audioCache.has(wordToSpeak)) {
+                        const audio = new Audio(audioCache.get(wordToSpeak));
+                        await audio.play();
+                        return;
                     }
-                });
+
+                    // Request speech synthesis from Polly
+                    const params = {
+                        Text: `<speak><prosody rate="slow">${wordToSpeak}</prosody></speak>`,
+                        OutputFormat: 'mp3',
+                        VoiceId: 'Joey',
+                        Engine: 'neural',
+                        TextType: 'ssml' // Using SSML to control speech rate
+                    };
+
+                    const data = await polly.synthesizeSpeech(params).promise();
+
+                    // Convert the audio buffer to a blob URL
+                    const blob = new Blob([data.AudioStream], { type: 'audio/mpeg' });
+                    const url = URL.createObjectURL(blob);
+
+                    // Cache the URL
+                    audioCache.set(wordToSpeak, url);
+
+                    // Play the audio
+                    const audio = new Audio(url);
+                    await audio.play();
+                } catch (error) {
+                    console.error('Error with Polly:', error);
+                    // Fallback to browser TTS if Polly fails
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(wordToSpeak);
+                        window.speechSynthesis.speak(utterance);
+                    }
+                }
             }
 
              function playChime() {
@@ -351,9 +370,7 @@
 
                 // --- Autoplay and Focus ---
                 setTimeout(() => {
-                     if(synth) { // Check synth exists before calling speakWord
-                         speakWord(word);
-                     }
+                     speakWord(word);
                      textInput.focus(); // Focus input after short delay
                 }, 150); // Delay helps ensure elements are rendered and context might be ready
             }
@@ -448,7 +465,7 @@
 
                 // Update result counts
                 correctCountEl.textContent = correctCount;
-                retryCountEl.textContent = retryCount; // Display retry count
+                retryCountEl.textContent = retryCount;
                 skippedCountEl.textContent = skippedWords.length;
 
                 // Populate skipped words list
