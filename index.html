@@ -80,6 +80,22 @@
         .close-button:hover {
             color: #000;
         }
+        /* Add new styles for results area */
+        #results-area {
+            min-height: 0;
+            transition: all 0.5s ease;
+        }
+        #results-area.hidden-fade {
+            min-height: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        #results-area.visible-fade {
+            min-height: fit-content;
+        }
+        .results-content {
+            padding: 1rem;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -149,21 +165,24 @@
         </div>
 
         <div id="results-area" class="hidden-fade text-center">
-            <h1 id="results-title" class="text-2xl font-bold text-green-600 mb-4">Congratulations!</h1>
-            <p id="results-message" class="text-lg text-gray-700 mb-2">You've completed the dictation.</p>
-            <div class="bg-gray-100 p-4 rounded-md space-y-2">
-                <p>Total words: <strong id="total-words">0</strong></p>
-                <p>Correct words: <strong id="correct-count" class="text-green-700">0</strong></p>
-                <p>Incorrect attempts (Retries): <strong id="retry-count" class="text-red-700">0</strong></p> <p>Skipped words: <strong id="skipped-count" class="text-orange-700">0</strong></p>
-                <div id="skipped-list-container" class="mt-3 hidden">
-                    <p class="font-semibold text-gray-600">Words you skipped:</p>
-                    <ul id="skipped-list" class="list-disc list-inside text-left text-sm text-gray-500 max-w-xs mx-auto">
+            <div class="results-content">
+                <h1 id="results-title" class="text-2xl font-bold text-green-600 mb-4">Congratulations!</h1>
+                <p id="results-message" class="text-lg text-gray-700 mb-2">You've completed the dictation.</p>
+                <div class="bg-gray-100 p-4 rounded-md space-y-2">
+                    <p>Total words: <strong id="total-words">0</strong></p>
+                    <p>Correct words: <strong id="correct-count" class="text-green-700">0</strong></p>
+                    <p>Incorrect attempts (Retries): <strong id="retry-count" class="text-red-700">0</strong></p>
+                    <p>Skipped words: <strong id="skipped-count" class="text-orange-700">0</strong></p>
+                    <div id="skipped-list-container" class="mt-3 hidden">
+                        <p class="font-semibold text-gray-600">Words you skipped:</p>
+                        <ul id="skipped-list" class="list-disc list-inside text-left text-sm text-gray-500 max-w-xs mx-auto">
                         </ul>
+                    </div>
                 </div>
+                <button id="restart-button" class="mt-6 action-button bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition duration-150 ease-in-out">
+                    Practice Again
+                </button>
             </div>
-             <button id="restart-button" class="mt-6 action-button bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition duration-150 ease-in-out">
-                Practice Again
-            </button>
         </div>
 
     </div>
