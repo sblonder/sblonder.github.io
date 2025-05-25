@@ -221,10 +221,9 @@
             const initialWords = ["mother duck", "beautiful", "ugly", "very", "go away", "walks", "little girl", "boys", "old", "friends", "big", "what's the matter", "water"];
 
             // AWS Configuration
-            AWS.config.region = 'us-east-1'; // Replace with your preferred region
-            AWS.config.credentials = new AWS.Credentials({
-                accessKeyId: 'AKIARQJDUE4XTZMHYO3M', // Replace with your AWS access key
-                secretAccessKey: 'MgmVTXSuvFLFaudc0H6cGW5aJFs7in1H10l71ptA' // Replace with your AWS secret key
+            AWS.config.region = 'us-east-1';
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: 'us-east-1:1e9b7e42-b4b9-482b-b8d6-c89be9836356'
             });
 
             const polly = new AWS.Polly();
