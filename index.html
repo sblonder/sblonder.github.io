@@ -11,45 +11,64 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
         }
         .action-button {
             padding: 0.6rem 1rem;
             margin: 0.25rem;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
         }
         .feedback {
-            transition: opacity 0.3s ease-in-out;
-            min-height: 1.25rem; /* Ensure space for feedback text */
+            transition: all 0.3s ease-in-out;
+            min-height: 1.25rem;
+            font-size: 1.2rem;
+            font-weight: bold;
         }
         .hidden-fade {
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease, visibility 0s 0.5s;
+            display: none;
         }
         .visible-fade {
             opacity: 1;
             visibility: visible;
             transition: opacity 0.5s ease;
+            display: block;
         }
-        /* Style for showing incorrect spelling in input */
         .input-error-display {
             color: red !important;
             border-color: red !important;
             font-weight: bold;
-            background-color: #fee2e2; /* Light red background */
+            background-color: #fee2e2;
+            animation: shake 0.5s ease-in-out;
         }
-         /* Style for showing correct spelling in input (blue) */
-         .input-correct-display {
-            color: blue !important;
-            border-color: blue !important;
+        .input-correct-display {
+            color: #4CAF50 !important;
+            border-color: #4CAF50 !important;
             font-weight: bold;
-            background-color: #e0f2fe; /* Light blue background */
+            background-color: #E8F5E9;
+            animation: bounce 0.5s ease-in-out;
         }
-        /* Smaller icon button */
         .icon-button {
-             padding: 0.5rem; /* Smaller padding */
-             display: inline-flex; /* Align icon nicely */
-             align-items: center;
-             justify-content: center;
+            padding: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .icon-button:hover {
+            transform: scale(1.1);
         }
         .modal {
             display: none;
@@ -60,69 +79,89 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
+            backdrop-filter: blur(5px);
         }
         .modal-content {
             position: relative;
             background-color: white;
             margin: 15% auto;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 20px;
             max-width: 500px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease-out;
         }
-        .close-button {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        .close-button:hover {
-            color: #000;
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
-        /* Add new styles for results area */
-        #results-area {
-            min-height: 0;
-            transition: all 0.5s ease;
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
-        #results-area.hidden-fade {
-            min-height: 0;
-            height: 0;
-            overflow: hidden;
+        .dictation-item {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
-        #results-area.visible-fade {
-            min-height: fit-content;
+        .success-emoji {
+            font-size: 2.5rem;
+            margin: 0.5rem;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
         .results-content {
             padding: 1rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
-        /* Celebration animations */
-        @keyframes celebrate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        #restart-button {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .celebrate {
-            animation: celebrate 0.5s ease-in-out;
+        #restart-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
-        .success-emoji {
-            font-size: 2rem;
-            margin: 0.5rem;
-            display: inline-block;
-        }
-        .success-emoji.animate {
-            animation: celebrate 0.5s ease-in-out;
-        }
-        /* Fireworks container */
-        #fireworks-container {
+        .word-progress {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
+            height: 4px;
+            background: #f0f0f0;
+        }
+        .word-progress-bar {
             height: 100%;
-            pointer-events: none;
-            z-index: 9999;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+        }
+        #results-area {
+            transition: all 0.5s ease;
+        }
+        #results-area.hidden-fade {
+            display: none;
+        }
+        #results-area.visible-fade {
+            display: block;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,16 +170,19 @@
 </head>
 <body class="bg-gray-100 p-4 md:p-8 flex items-center justify-center min-h-screen">
     <div id="fireworks-container"></div>
+    <div class="word-progress">
+        <div id="progress-bar" class="word-progress-bar" style="width: 0%"></div>
+    </div>
     <!-- Add Configuration Modal -->
     <div id="config-modal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2 class="text-xl font-bold mb-4">Voice Settings</h2>
+            <h2 class="text-2xl font-bold mb-4 text-center">🎙️ Voice Settings</h2>
             <div class="space-y-4">
                 <div>
-                    <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-1">Voice</label>
+                    <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-1">Choose Your Voice</label>
                     <select id="voice-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <optgroup label="Female Voices">
+                        <optgroup label="👩 Female Voices">
                             <option value="Danielle">Danielle</option>
                             <option value="Joanna">Joanna</option>
                             <option value="Kendra">Kendra</option>
@@ -148,7 +190,7 @@
                             <option value="Salli">Salli</option>
                             <option value="Ruth">Ruth</option>
                         </optgroup>
-                        <optgroup label="Male Voices">
+                        <optgroup label="👨 Male Voices">
                             <option value="Gregory">Gregory</option>
                             <option value="Joey">Joey</option>
                             <option value="Matthew">Matthew</option>
@@ -158,27 +200,26 @@
                     </select>
                 </div>
                 <div>
-                    <label for="rate-select" class="block text-sm font-medium text-gray-700 mb-1">Speaking Rate</label>
+                    <label for="rate-select" class="block text-sm font-medium text-gray-700 mb-1">Speaking Speed</label>
                     <select id="rate-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="x-slow">Very Slow</option>
-                        <option value="slow">Slow</option>
-                        <option value="medium">Medium</option>
-                        <option value="fast">Fast</option>
-                        <option value="x-fast">Very Fast</option>
+                        <option value="x-slow">🐢 Very Slow</option>
+                        <option value="slow">🐢 Slow</option>
+                        <option value="medium">🐰 Medium</option>
+                        <option value="fast">🦊 Fast</option>
+                        <option value="x-fast">⚡ Very Fast</option>
                     </select>
                 </div>
                 <button id="save-config" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    Save Settings
+                    Save Settings ✨
                 </button>
             </div>
         </div>
     </div>
 
     <div class="max-w-xl w-full mx-auto bg-white p-6 rounded-lg shadow-md">
-
         <div id="dictation-area" class="visible-fade">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">Dictation Practice</h1>
+                <h1 class="text-3xl font-bold text-gray-800">🎯 Dictation Practice</h1>
                 <button id="config-button" class="icon-button bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -187,9 +228,9 @@
                 </button>
             </div>
             <div id="word-container" class="space-y-4">
-                <div class="text-center text-gray-500">Loading...</div>
+                <div class="text-center text-gray-500">Loading... ✨</div>
             </div>
-            <div id="tts-error" class="text-center text-red-600 mt-4 hidden">Sorry, your browser does not support text-to-speech.</div>
+            <div id="tts-error" class="text-center text-red-600 mt-4 hidden">Sorry, your browser does not support text-to-speech. 😢</div>
         </div>
 
         <div id="results-area" class="hidden-fade text-center">
@@ -249,9 +290,16 @@
             let chime;
             let victoryMelody;
             let feedbackIntervalId = null;
-            let audioCache = new Map(); // Cache for audio files
-            let firstAttemptSuccesses = new Set(); // Track words succeeded on first attempt
-            let wordAttempts = new Map(); // Track number of attempts per word
+            let audioCache = new Map();
+            let firstAttemptSuccesses = new Set();
+            let wordAttempts = new Map();
+            const progressBar = document.getElementById('progress-bar');
+
+            // Function to update progress bar
+            function updateProgress() {
+                const progress = (currentWordIndex / words.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            }
 
             // --- DOM Elements ---
             const wordContainer = document.getElementById('word-container');
@@ -413,9 +461,9 @@
 
             // Function to display the current word and controls
             function displayWord(index) {
-                wordContainer.innerHTML = ''; // Clear previous word
+                wordContainer.innerHTML = '';
+                updateProgress();
 
-                // Check if dictation is complete
                 if (index >= words.length) {
                     showResults();
                     return;
@@ -423,15 +471,12 @@
 
                 const word = words[index];
 
-                // --- Create DOM Elements ---
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'dictation-item border border-gray-200 p-4 rounded-md flex flex-col items-center gap-3';
 
-                // Container for Replay Button and Input Field
                 const inputRow = document.createElement('div');
                 inputRow.className = 'flex items-center gap-2 w-full max-w-md justify-center';
 
-                // Replay Button (Icon Only)
                 const playButton = document.createElement('button');
                 playButton.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -439,17 +484,18 @@
                     </svg>`;
                 playButton.className = 'icon-button flex-shrink-0 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300 transition duration-150 ease-in-out';
                 playButton.setAttribute('aria-label', `Replay Word ${index + 1}`);
-                playButton.onclick = () => speakWord(word);
-                playButton.disabled = false;
+                playButton.onclick = () => {
+                    playButton.classList.add('animate-spin');
+                    speakWord(word).finally(() => {
+                        setTimeout(() => playButton.classList.remove('animate-spin'), 500);
+                    });
+                };
 
-                // Input Field
                 const textInput = document.createElement('input');
                 textInput.type = 'text';
                 textInput.placeholder = 'Type what you hear...';
                 textInput.className = 'flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-300 min-w-0';
                 textInput.setAttribute('aria-label', `Input for word ${index + 1}`);
-                textInput.disabled = false;
-                // Disable autocomplete, autocorrect, and other similar features
                 textInput.setAttribute('autocomplete', 'off');
                 textInput.setAttribute('autocorrect', 'off');
                 textInput.setAttribute('autocapitalize', 'off');
@@ -458,41 +504,34 @@
                 inputRow.appendChild(playButton);
                 inputRow.appendChild(textInput);
 
-                // Feedback Area
                 const feedbackSpan = document.createElement('span');
                 feedbackSpan.className = 'feedback text-sm font-medium h-6 flex items-center justify-center';
                 feedbackSpan.setAttribute('aria-live', 'polite');
 
-                 // Container for Check and Skip buttons
-                 const buttonContainer = document.createElement('div');
-                 buttonContainer.className = 'flex flex-wrap justify-center gap-2 mt-2';
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'flex flex-wrap justify-center gap-2 mt-2';
 
-                // Check Button
                 const checkButton = document.createElement('button');
-                checkButton.textContent = 'Check';
+                checkButton.textContent = 'Check ✨';
                 checkButton.className = 'action-button bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-150 ease-in-out';
-                checkButton.disabled = false;
 
-                // Skip Button
                 const skipButton = document.createElement('button');
-                skipButton.textContent = 'Skip';
+                skipButton.textContent = 'Skip ⏭️';
                 skipButton.className = 'action-button bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300 transition duration-150 ease-in-out';
-                skipButton.disabled = false;
 
-                 // --- Event Handlers ---
                 const handleCheck = () => {
-                    if (checkButton.disabled) return; // Prevent check if disabled
-                    startAudioContext(); // Ensure context is running
+                    if (checkButton.disabled) return;
+                    startAudioContext();
                     checkSpelling(textInput, feedbackSpan, word, checkButton, skipButton, playButton);
-                 };
+                };
 
-                 const handleSkip = () => {
-                     if (skipButton.disabled) return; // Prevent skip if disabled
+                const handleSkip = () => {
+                    if (skipButton.disabled) return;
                     startAudioContext();
                     skippedWords.push(word);
                     currentWordIndex++;
                     displayWord(currentWordIndex);
-                 };
+                };
 
                 checkButton.onclick = handleCheck;
                 skipButton.onclick = handleSkip;
@@ -505,14 +544,12 @@
                 });
 
                 textInput.addEventListener('input', () => {
-                    // Clear feedback only if controls are enabled (not during feedback animation)
                     if (!checkButton.disabled) {
                         feedbackSpan.textContent = '';
                         feedbackSpan.classList.remove('text-green-600', 'text-red-600', 'text-yellow-600');
                     }
                 });
 
-                // --- Append Elements to DOM ---
                 itemDiv.appendChild(inputRow);
                 itemDiv.appendChild(feedbackSpan);
                 buttonContainer.appendChild(checkButton);
@@ -521,36 +558,32 @@
 
                 wordContainer.appendChild(itemDiv);
 
-                // --- Autoplay and Focus ---
                 setTimeout(() => {
-                     speakWord(word);
-                     textInput.focus(); // Focus input after short delay
-                }, 150); // Delay helps ensure elements are rendered and context might be ready
+                    speakWord(word);
+                    textInput.focus();
+                }, 150);
             }
 
             // Function to check spelling and handle the outcome
             function checkSpelling(inputElement, feedbackElement, correctWord, checkBtn, skipBtn, playBtn) {
-                // Prevent checking if already processing feedback
                 if (inputElement.disabled) return;
 
-                const userInputRaw = inputElement.value.trim(); // Keep raw input for display
+                const userInputRaw = inputElement.value.trim();
                 const normalizedCorrectWord = correctWord.toLowerCase().replace(/\s+/g, ' ');
                 const normalizedUserInput = userInputRaw.toLowerCase().replace(/\s+/g, ' ');
 
-                // Track attempt for this word
                 const currentAttempts = (wordAttempts.get(currentWordIndex) || 0) + 1;
                 wordAttempts.set(currentWordIndex, currentAttempts);
 
                 feedbackElement.classList.remove('text-green-600', 'text-red-600', 'text-yellow-600');
 
                 if (normalizedUserInput === normalizedCorrectWord) {
-                    // --- CORRECT ---
                     const isFirstAttempt = currentAttempts === 1;
                     if (isFirstAttempt) {
                         firstAttemptSuccesses.add(currentWordIndex);
                         feedbackElement.innerHTML = 'Perfect! First try! 🎉';
 
-                        // Trigger mini celebration only for first attempts
+                        // Enhanced celebration for first attempts
                         const duration = 3 * 1000;
                         const animationEnd = Date.now() + duration;
                         const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -567,82 +600,79 @@
                             }
 
                             const particleCount = 50 * (timeLeft / duration);
+
+                            // Launch confetti from multiple points
                             confetti({
                                 ...defaults,
                                 particleCount,
-                                origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+                                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                            });
+                            confetti({
+                                ...defaults,
+                                particleCount,
+                                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
                             });
                         }, 250);
                     } else {
-                        feedbackElement.innerHTML = 'Correct!';
+                        feedbackElement.innerHTML = 'Correct! 🎯';
                     }
 
                     feedbackElement.classList.add('text-green-600', 'celebrate');
                     correctCount++;
                     playChime();
 
-                    // Disable controls temporarily
                     inputElement.disabled = true;
                     checkBtn.disabled = true;
                     skipBtn.disabled = true;
                     playBtn.disabled = true;
 
-                    // Advance after delay
                     setTimeout(() => {
                         currentWordIndex++;
                         displayWord(currentWordIndex);
                     }, CORRECT_FEEDBACK_DELAY);
 
                 } else if (userInputRaw === '') {
-                    // --- EMPTY INPUT ---
-                    feedbackElement.textContent = 'Please type the word.';
+                    feedbackElement.textContent = 'Please type the word. 📝';
                     feedbackElement.classList.add('text-yellow-600');
                     inputElement.focus();
 
                 } else {
-                    // --- INCORRECT ---
-                    retryCount++; // Increment retry counter
-                    feedbackElement.textContent = 'Incorrect. Try again!';
+                    retryCount++;
+                    feedbackElement.textContent = 'Try again! 💪';
                     feedbackElement.classList.add('text-red-600');
 
-                    // Disable controls during feedback animation
                     inputElement.disabled = true;
                     checkBtn.disabled = true;
                     skipBtn.disabled = true;
                     playBtn.disabled = true;
 
                     let flashCounter = 0;
-                    // Start alternating display using setInterval
                     feedbackIntervalId = setInterval(() => {
                         flashCounter++;
                         if (flashCounter > INCORRECT_FLASH_COUNT) {
-                            // --- End of Flashing ---
-                            clearInterval(feedbackIntervalId); // Stop the interval
+                            clearInterval(feedbackIntervalId);
                             feedbackIntervalId = null;
-                            inputElement.classList.remove('input-error-display', 'input-correct-display'); // Clear styles
-                            inputElement.value = ''; // Clear the input field
-                            feedbackElement.textContent = ''; // Clear feedback text
-                            feedbackElement.classList.remove('text-red-600'); // Clear feedback color
+                            inputElement.classList.remove('input-error-display', 'input-correct-display');
+                            inputElement.value = '';
+                            feedbackElement.textContent = '';
+                            feedbackElement.classList.remove('text-red-600');
 
-                            // Re-enable controls
                             inputElement.disabled = false;
                             checkBtn.disabled = false;
                             skipBtn.disabled = false;
                             playBtn.disabled = false;
-                            inputElement.focus(); // Set focus back to input
+                            inputElement.focus();
 
                         } else if (flashCounter % 2 !== 0) {
-                            // --- Show Incorrect (Red) ---
-                            inputElement.value = userInputRaw; // Show user's wrong input
+                            inputElement.value = userInputRaw;
                             inputElement.classList.remove('input-correct-display');
                             inputElement.classList.add('input-error-display');
                         } else {
-                            // --- Show Correct (Blue) ---
-                            inputElement.value = correctWord; // Show the correct word
+                            inputElement.value = correctWord;
                             inputElement.classList.remove('input-error-display');
                             inputElement.classList.add('input-correct-display');
                         }
-                    }, INCORRECT_FLASH_INTERVAL); // Run every interval duration
+                    }, INCORRECT_FLASH_INTERVAL);
                 }
             }
 
