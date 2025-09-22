@@ -156,54 +156,40 @@
     </div>
 
     <script>
-        // Menu data embedded for local testing
-        const menuData = {
+        // Fallback menu data with just Negroni
+        const fallbackMenuData = {
             "Negroni": {
                 "image": "https://cdn.diffordsguide.com/cocktail/oryvaO/default/0/512x.webp",
                 "steps": [
                     { "ingredients": [ {"Gin": "1 oz"}, {"Campari": "1 oz"}, {"Sweet Vermouth": "1 oz"} ], "action": ["Stir"] },
                     { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
                 ]
-            },
-            "Old Fashioned": {
-                "image": "https://cdn.diffordsguide.com/cocktail/A2Q8eR/default/0/512x.webp",
-                "steps": [
-                    { "ingredients": [ {"Bourbon": "2 oz"}, {"Sugar": "1/2 oz"}, {"Angostura Bitters": "2-3 dashes"} ], "action": ["Stir"] },
-                    { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
-                ]
-            },
-            "Sidecar": {
-                "image": "https://cdn.diffordsguide.com/cocktail/Am6dvr/default/0/512x.webp",
-                "steps": [
-                    { "ingredients": [ {"Cognac": "1.5 oz"}, {"Triple Sec": "1 oz"}, {"Lemon Juice": "1/2 oz"} ], "action": ["Shake"] },
-                    { "ingredients": [ {"Lemon Peel": "1"} ], "action": ["Garnish"]}
-                ]
-            },
-            "Mai Tai": {
-                "image": "https://cdn.diffordsguide.com/cocktail/wrNKpO/default/1/512x.webp",
-                "steps": [
-                    { "ingredients": [ {"White Rum": "1.5 oz"}, {"Curaçao": "3/4 oz"}, {"Lime Juice": "3/4 oz"}, {"Orgeat": "1/2 oz"} ], "action": ["Shake"] },
-                    { "ingredients": [ {"Dark Rum": "1/2 oz"} ], "action": ["Float"]},
-                    { "ingredients": [ {"Lime Wheel": "1"}, {"Mint Leaves": "1"} ], "action": ["Garnish"]}
-                ]
-            },
-            "Gin & Tonic": {
-                "image": "https://cdn.diffordsguide.com/cocktail/gO3QKA/default/0/512x.webp",
-                "steps": [
-                    { "ingredients": [ {"Gin": "2 oz"}, {"Tonic Water": "4 oz"} ], "action": ["Stir"] },
-                    { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
-                ]
             }
         };
 
         class CocktailMenu {
             constructor() {
-                this.menuData = menuData;
+                this.menuData = null;
                 this.init();
             }
 
-            init() {
-                this.renderMenu();
+            async init() {
+                try {
+                    await this.loadMenu();
+                    this.renderMenu();
+                } catch (error) {
+                    console.error('Error loading menu:', error);
+                    this.menuData = fallbackMenuData;
+                    this.renderMenu();
+                }
+            }
+
+            async loadMenu() {
+                const response = await fetch('menu.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load menu');
+                }
+                this.menuData = await response.json();
             }
 
             showError() {
