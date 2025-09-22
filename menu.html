@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocktail Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 300;
+            font-size: 1.5rem;
+            color: #222;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .cocktail-tile {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cocktail-tile:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .cocktail-tile.expanded {
+            grid-column: 1 / -1;
+            margin: 10px 0;
+        }
+
+        .cocktail-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+        }
+
+        .cocktail-name {
+            padding: 15px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: #222;
+        }
+
+        .preparation {
+            padding: 0 15px 15px 15px;
+            display: none;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+
+        .cocktail-tile.expanded .preparation {
+            display: block;
+        }
+
+        .step {
+            margin-bottom: 15px;
+        }
+
+        .step-line {
+            font-size: 0.95rem;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #d32f2f;
+            background: #ffebee;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+            }
+
+            .menu-grid {
+                gap: 15px;
+            }
+
+            .cocktail-image {
+                height: 150px;
+            }
+
+            .cocktail-name {
+                padding: 12px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-grid {
+                gap: 10px;
+            }
+
+            .cocktail-image {
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>The Menu</h1>
+        <div id="loading" class="loading">Loading menu...</div>
+        <div id="error" class="error" style="display: none;">Failed to load menu. Please refresh the page.</div>
+        <div id="menu-grid" class="menu-grid" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Menu data embedded for local testing
+        const menuData = {
+            "Negroni": {
+                "image": "https://cdn.diffordsguide.com/cocktail/oryvaO/default/0/512x.webp",
+                "steps": [
+                    { "ingredients": [ {"Gin": "1 oz"}, {"Campari": "1 oz"}, {"Sweet Vermouth": "1 oz"} ], "action": ["Stir"] },
+                    { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
+                ]
+            },
+            "Old Fashioned": {
+                "image": "https://cdn.diffordsguide.com/cocktail/A2Q8eR/default/0/512x.webp",
+                "steps": [
+                    { "ingredients": [ {"Bourbon": "2 oz"}, {"Sugar": "1/2 oz"}, {"Angostura Bitters": "2-3 dashes"} ], "action": ["Stir"] },
+                    { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
+                ]
+            },
+            "Sidecar": {
+                "image": "https://cdn.diffordsguide.com/cocktail/Am6dvr/default/0/512x.webp",
+                "steps": [
+                    { "ingredients": [ {"Cognac": "1.5 oz"}, {"Triple Sec": "1 oz"}, {"Lemon Juice": "1/2 oz"} ], "action": ["Shake"] },
+                    { "ingredients": [ {"Lemon Peel": "1"} ], "action": ["Garnish"]}
+                ]
+            },
+            "Mai Tai": {
+                "image": "https://cdn.diffordsguide.com/cocktail/wrNKpO/default/1/512x.webp",
+                "steps": [
+                    { "ingredients": [ {"White Rum": "1.5 oz"}, {"Curaçao": "3/4 oz"}, {"Lime Juice": "3/4 oz"}, {"Orgeat": "1/2 oz"} ], "action": ["Shake"] },
+                    { "ingredients": [ {"Dark Rum": "1/2 oz"} ], "action": ["Float"]},
+                    { "ingredients": [ {"Lime Wheel": "1"}, {"Mint Leaves": "1"} ], "action": ["Garnish"]}
+                ]
+            },
+            "Gin & Tonic": {
+                "image": "https://cdn.diffordsguide.com/cocktail/gO3QKA/default/0/512x.webp",
+                "steps": [
+                    { "ingredients": [ {"Gin": "2 oz"}, {"Tonic Water": "4 oz"} ], "action": ["Stir"] },
+                    { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
+                ]
+            }
+        };
+
+        class CocktailMenu {
+            constructor() {
+                this.menuData = menuData;
+                this.init();
+            }
+
+            init() {
+                this.renderMenu();
+            }
+
+            showError() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+
+            renderMenu() {
+                const menuGrid = document.getElementById('menu-grid');
+                const loading = document.getElementById('loading');
+
+                loading.style.display = 'none';
+                menuGrid.style.display = 'grid';
+
+                Object.entries(this.menuData).forEach(([name, data]) => {
+                    const tile = this.createCocktailTile(name, data);
+                    menuGrid.appendChild(tile);
+                });
+            }
+
+            createCocktailTile(name, data) {
+                const tile = document.createElement('div');
+                tile.className = 'cocktail-tile';
+
+                const image = document.createElement('img');
+                image.src = data.image;
+                image.alt = name;
+                image.className = 'cocktail-image';
+
+                const nameElement = document.createElement('div');
+                nameElement.className = 'cocktail-name';
+                nameElement.textContent = name;
+
+                const preparation = document.createElement('div');
+                preparation.className = 'preparation';
+
+                data.steps.forEach((step, index) => {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'step';
+
+                    const stepLine = document.createElement('div');
+                    stepLine.className = 'step-line';
+
+                    // Format: Action: ingredient1, ingredient2, etc.
+                    const action = step.action.join(', ');
+                    const ingredientList = step.ingredients.map(ingredient => {
+                        return Object.entries(ingredient).map(([ingName, amount]) => {
+                            return `${amount} ${ingName}`;
+                        }).join(', ');
+                    }).join(', ');
+
+                    stepLine.textContent = `${action}: ${ingredientList}`;
+                    stepDiv.appendChild(stepLine);
+                    preparation.appendChild(stepDiv);
+                });
+
+                tile.appendChild(image);
+                tile.appendChild(nameElement);
+                tile.appendChild(preparation);
+
+                tile.addEventListener('click', () => {
+                    this.toggleTile(tile);
+                });
+
+                return tile;
+            }
+
+            toggleTile(tile) {
+                const isExpanded = tile.classList.contains('expanded');
+
+                // Close all other expanded tiles
+                document.querySelectorAll('.cocktail-tile.expanded').forEach(t => {
+                    if (t !== tile) {
+                        t.classList.remove('expanded');
+                    }
+                });
+
+                // Toggle current tile
+                if (isExpanded) {
+                    tile.classList.remove('expanded');
+                } else {
+                    tile.classList.add('expanded');
+                }
+            }
+        }
+
+        // Initialize the menu when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new CocktailMenu();
+        });
+    </script>
+</body>
+</html>
