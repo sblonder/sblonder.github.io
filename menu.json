@@ -6,10 +6,32 @@
             { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
         ]
     },
+    "Gin & Tonic": {
+        "image": "https://cdn.diffordsguide.com/cocktail/gO3QKA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Gin": "2 oz"}, {"Tonic Water": "4 oz"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Tom Collins": {
+        "image": "https://cdn.diffordsguide.com/cocktail/Ax08qA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Gin": "2 oz"}, {"Lemon Juice": "1 oz"}, {"Syrup": "1/2 oz"} ], "action": ["Shake"] },
+            { "ingredients": [ {"Soda": "2 oz"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Lemon Wheel": "1"}, {"Maraschino Cherry": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Gimlet": {
+        "image": "https://cdn.diffordsguide.com/cocktail/7AQoMO/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Gin": "2 oz"}, {"Lime Juice": "1/2 oz"}, {"Syrup": "1/2 oz"} ], "action": ["Shake"] },
+            { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
+        ]
+    },
     "Old Fashioned": {
         "image": "https://cdn.diffordsguide.com/cocktail/A2Q8eR/default/0/512x.webp",
         "steps": [
-            { "ingredients": [ {"Bourbon": "2 oz"}, {"Sugar": "1/2 oz"}, {"Angostura Bitters": "2-3 dashes"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Bourbon": "2 oz"}, {"Syrup": "1/2 oz"}, {"Angostura Bitters": "2-3 dashes"} ], "action": ["Stir"] },
             { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
         ]
     },
@@ -20,6 +42,28 @@
             { "ingredients": [ {"Lemon Peel": "1"} ], "action": ["Garnish"]}
         ]
     },
+    "Whiskey Sour": {
+        "image": "https://cdn.diffordsguide.com/cocktail/rVQbYA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Bourbon": "2 oz"}, {"Lemon Juice": "1 oz"}, {"Syrup": "1/2 oz"}, {"Angostura Bitters": "3 dashes"}, {"Egg White (optional)": "1"} ], "action": ["Dry Shake"] },
+            { "ingredients": [ {"Ice": "4 oz"} ], "action": ["Shake"] },
+            { "ingredients": [ {"Lemon Wheel": "1"}, {"Maraschino Cherry": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Boulevardier": {
+        "image": "https://cdn.diffordsguide.com/cocktail/AMQNDA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Bourbon": "1.5 oz"}, {"Campari": "3/4 oz"}, {"Sweet Vermouth": "3/4 oz"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Orange Peel": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Manhattan": {
+        "image": "https://cdn.diffordsguide.com/cocktail/NAm1xA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Rye": "2 oz"}, {"Sweet Vermouth": "1 oz"}, {"Angostura Bitters": "2 dashes"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Maraschino Cherry": "1"} ], "action": ["Garnish"]}
+        ]
+    },
     "Mai Tai": {
         "image": "https://cdn.diffordsguide.com/cocktail/wrNKpO/default/1/512x.webp",
         "steps": [
@@ -28,11 +72,50 @@
             { "ingredients": [ {"Lime Wheel": "1"}, {"Mint Leaves": "1"} ], "action": ["Garnish"]}
         ]
     },
-    "Gin & Tonic": {
-        "image": "https://cdn.diffordsguide.com/cocktail/gO3QKA/default/0/512x.webp",
+    "Dark 'n Stormy": {
+        "image": "https://cdn.diffordsguide.com/cocktail/wrN0ZR/default/0/512x.webp",
         "steps": [
-            { "ingredients": [ {"Gin": "2 oz"}, {"Tonic Water": "4 oz"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Dark Rum": "2 oz"}, {"Lime Juice": "1/2 oz"} ], "action": ["Pour"] },
+            { "ingredients": [ {"Ginger Beer": "4 oz"} ], "action": ["Pour"] },
             { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Cuba Libre": {
+        "image": "https://cdn.diffordsguide.com/cocktail/OdnXkA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"White Rum": "2 oz"}, {"Cola": "4 oz"} ], "action": ["Pour"] },
+            { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Mojito": {
+        "image": "https://cdn.diffordsguide.com/cocktail/YAkkNA/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Mint Leaves": "2"}, {"Syrup": "1/2 oz"}], "action": ["Muddle"] },
+            { "ingredients": [ {"White Rum": "2 oz"}, {"Lime Juice": "1/2 oz"} ], "action": ["Stir"] },
+            { "ingredients": [ {"Soda": "1/2 oz"} ], "action": ["Pour"] },
+            { "ingredients": [ {"Lime Wedge": "1"}, {"Mint Leaves": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Daiquiri": {
+        "image": "https://cdn.diffordsguide.com/cocktail/zAM3bO/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"White Rum": "2 oz"}, {"Lime Juice": "1 oz"}, {"Syrup": "3/4 oz"} ], "action": ["Shake"] },
+            { "ingredients": [ {"Lime Peel": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Margarita": {
+        "image": "https://cdn.diffordsguide.com/cocktail/zAM6Nr/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Tequila": "1.5 oz"}, {"Triple Sec": "3/4 oz"}, {"Lime Juice": "3/4 oz"}, {"Agave Syrup (optional)": "1/6 oz"} ], "action": ["Shake"] },
+            { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
+        ]
+    },
+    "Tequila Sunrise": {
+        "image": "https://cdn.diffordsguide.com/cocktail/gO3KKO/default/0/512x.webp",
+        "steps": [
+            { "ingredients": [ {"Tequila": "2 oz"}, {"Orange Juice": "4 oz"} ], "action": ["Pour"] },
+            { "ingredients": [ {"Grenadine": "1/4 oz"} ], "action": ["Pour"]},
+            { "ingredients": [ {"Orange Wedge": "1"} ], "action": ["Garnish"]}
         ]
     }
 }
