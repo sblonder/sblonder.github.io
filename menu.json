@@ -11,7 +11,7 @@
         "steps": [
             { "ingredients": [ {"Gin": "2 oz"}, {"Tonic Water": "4 oz"} ], "action": ["Stir"] },
             { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
-        ]
+        ],
     
     "Tom Collins": {
         "image": "https://cdn.diffordsguide.com/cocktail/Ax08qA/default/0/512x.webp",
@@ -20,7 +20,7 @@
             { "ingredients": [ {"Soda": "2 oz"} ], "action": ["Stir"] },
             { "ingredients": [ {"Lemon Wheel": "1"}, {"Maraschino Cherry": "1"} ], "action": ["Garnish"]}
         ]
-    },},
+    }},
     "Gimlet": {
         "image": "https://cdn.diffordsguide.com/cocktail/7AQoMO/default/0/512x.webp",
         "steps": [
@@ -70,7 +70,7 @@
             { "ingredients": [ {"White Rum": "1.5 oz"}, {"Curaçao": "3/4 oz"}, {"Lime Juice": "3/4 oz"}, {"Orgeat": "1/2 oz"} ], "action": ["Shake"] },
             { "ingredients": [ {"Dark Rum": "1/2 oz"} ], "action": ["Float"]},
             { "ingredients": [ {"Lime Wheel": "1"}, {"Mint Leaves": "1"} ], "action": ["Garnish"]}
-        ]
+        ],
     
     "Dark 'n Stormy": {
         "image": "https://cdn.diffordsguide.com/cocktail/wrN0ZR/default/0/512x.webp",
@@ -79,7 +79,7 @@
             { "ingredients": [ {"Ginger Beer": "4 oz"} ], "action": ["Pour"] },
             { "ingredients": [ {"Lime Wedge": "1"} ], "action": ["Garnish"]}
         ]
-    },},
+    }},
     "Cuba Libre": {
         "image": "https://cdn.diffordsguide.com/cocktail/OdnXkA/default/0/512x.webp",
         "steps": [
