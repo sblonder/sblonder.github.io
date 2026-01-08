@@ -205,7 +205,7 @@
                 menuGrid.style.display = 'grid';
 
                 Object.entries(this.menuData).forEach(([name, data]) => {
-                    if (!data.available) continue;
+                    if (!data.available) return;
                     const tile = this.createCocktailTile(name, data);
                     menuGrid.appendChild(tile);
                 });
