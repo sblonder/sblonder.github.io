@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Domotics | Luxury Smart Home Solutions</title>
+    <script type="module" crossorigin src="/assets/index-DPjfjoee.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C67Rl68C.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <nav class="nav">
+          <a href="/" class="logo">
+            <img src="data:image/svg+xml,%3csvg%20width='200'%20height='200'%20viewBox='0%200%20200%20200'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M50%2040C50%2034.4772%2054.4772%2030%2060%2030H120C153.137%2030%20180%2056.8629%20180%2090V110C180%20143.137%20153.137%20170%20120%20170H60C54.4772%20170%2050%20165.523%2050%20160V40Z'%20stroke='%23d4af37'%20stroke-width='8'/%3e%3cpath%20d='M80%2070V130M80%2070H110C126.569%2070%20140%2083.4315%20140%20100C140%20116.569%20126.569%20130%20110%20130H80'%20stroke='%2300f2ff'%20stroke-width='6'/%3e%3crect%20x='70'%20y='95'%20width='20'%20height='10'%20fill='%23d4af37'/%3e%3c/svg%3e" alt="Domotics Logo">
+            <span>Domotics</span>
+          </a>
+          <ul class="nav-links">
+            <li><a href="#journey">The Journey</a></li>
+            <li><a href="#imagine">Imagine</a></li>
+            <li><a href="#contact" class="btn btn-outline">Consultancy</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-content">
+            <h1 class="fade-in">Elevate Your Living <span class="text-accent">Experience</span></h1>
+            <p class="fade-in">Tailored high-end smart home solutions in West Palm Beach. From initial consultation to ongoing support, we transform your fantasies into reality.</p>
+            <div class="hero-actions fade-in">
+              <a href="#contact" class="btn btn-primary">Request Free Consultancy</a>
+              <a href="#journey" class="btn btn-link">Learn Our Process</a>
+            </div>
+          </div>
+        </div>
+        <div class="hero-bg"></div>
+      </section>
+
+      <section id="journey" class="section journey">
+        <div class="container">
+          <h2 class="section-title">The <span class="text-gold">Journey</span></h2>
+          <div class="journey-grid">
+            <div class="journey-item">
+              <div class="journey-number">01</div>
+              <h3>Consultation</h3>
+              <p>We listen to your needs, preferences, and fantasies to understand your vision.</p>
+            </div>
+            <div class="journey-item">
+              <div class="journey-number">02</div>
+              <h3>Design & Proposal</h3>
+              <p>Tailored solutions with budget alternatives, crafted specifically for your home.</p>
+            </div>
+            <div class="journey-item">
+              <div class="journey-number">03</div>
+              <h3>Installation</h3>
+              <p>Professional configuration of all components, from lighting to security.</p>
+            </div>
+            <div class="journey-item">
+              <div class="journey-number">04</div>
+              <h3>Support</h3>
+              <p>Ongoing services and adjustments to ensure your system evolves with you.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="imagine" class="imagine">
+        <div class="dashboard-wrapper">
+          <div class="dashboard-header">
+            <h2>Your Living <span class="text-accent">Command Center</span></h2>
+          </div>
+          
+          <div class="dashboard-layout">
+            <div class="dashboard-main-glow" id="dashboard-glow">
+              <div class="dashboard-panel">
+                <canvas id="particle-canvas"></canvas>
+                
+                <div class="dashboard-inner-layout">
+                  <!-- Main Controls -->
+                  <div class="dashboard-content-grid">
+                    <!-- Top Row: Climate and Scenes -->
+                    <div class="grid-row">
+                      <!-- Climate Widget -->
+                      <div class="widget climate-widget">
+                        <div class="widget-header-flex">
+                          <h3>Climate</h3>
+                          <div class="mode-toggle">
+                            <button id="toggle-climate-mode" class="btn-icon" title="Toggle Heat/Cool">
+                              <span id="climate-mode-icon">❄️</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="temp-control">
+                          <button id="temp-down">-</button>
+                          <span id="temp-display">72°</span>
+                          <button id="temp-up">+</button>
+                        </div>
+                        <div class="widget-status" id="climate-status">Airflow: Optimized</div>
+                      </div>
+
+                      <!-- Scenes Widget -->
+                      <div class="widget scenes-widget">
+                        <h3>Scenes</h3>
+                        <div class="scene-grid">
+                          <button class="scene-btn active" data-scene="default">Morning</button>
+                          <button class="scene-btn" data-scene="evening">Evening</button>
+                          <button class="scene-btn" data-scene="cinema">Cinema</button>
+                          <button class="scene-btn" data-scene="away">Away</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Middle Row: Light Controls -->
+                    <div class="grid-row">
+                      <div class="widget lights-widget">
+                        <h3>Lighting Control</h3>
+                        <div class="lights-controls">
+                          <div class="light-toggle">
+                            <span>Kitchen</span>
+                            <label class="switch">
+                              <input type="checkbox" id="light-kitchen" checked>
+                              <span class="slider"></span>
+                            </label>
+                          </div>
+                          <div class="light-toggle">
+                            <span>Living Room</span>
+                            <label class="switch">
+                              <input type="checkbox" id="light-living" checked>
+                              <span class="slider"></span>
+                            </label>
+                          </div>
+                          <div class="light-toggle">
+                            <span>Bedroom</span>
+                            <label class="switch">
+                              <input type="checkbox" id="light-bedroom">
+                              <span class="slider"></span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bottom Row: Security and Access -->
+                    <div class="grid-row">
+                      <!-- Camera Streams -->
+                      <div class="widget security-widget">
+                        <h3>Security Feeds</h3>
+                        <div class="camera-grid">
+                          <div class="camera-stream">
+                            <img src="/assets/security_stream_driveway_day_sunny-8CmnWzFD.jpeg" id="cam-driveway" alt="Driveway Camera Feed">
+                            <span class="rec-dot"></span>
+                            <div class="cam-label">DRIVEWAY</div>
+                          </div>
+                          <div class="camera-stream">
+                            <img src="/assets/security_stream_backyard_day_sunny-d1cA1iEG.jpeg" id="cam-backyard" alt="Backyard Camera Feed">
+                            <span class="rec-dot"></span>
+                            <div class="cam-label">BACKYARD</div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Access Widget -->
+                      <div class="widget access-widget">
+                        <h3>Access</h3>
+                        <div class="access-controls">
+                          <div class="access-item">
+                            <span>Blinds</span>
+                            <button id="toggle-blinds" class="btn btn-sm">Open</button>
+                          </div>
+                          <div class="access-item">
+                            <span>Main Lock</span>
+                            <button id="toggle-lock" class="btn btn-sm locked">Locked</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Integrated Notification Sidebar -->
+                  <div class="dashboard-sidebar-internal">
+                    <h3>Live Activity</h3>
+                    <div class="notification-list" id="notifications">
+                      <!-- Notifications injected by JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section brands">
+        <div class="container">
+          <h2 class="section-title small">Premium Solutions Powered by Trusted Brands</h2>
+          <div class="brand-grid">
+            <span>Lutron</span>
+            <span>Sonos</span>
+            <span>Shelly</span>
+            <span>Reolink</span>
+            <span>Matter</span>
+            <span>Home Assistant</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section contact">
+        <div class="container">
+          <div class="contact-card">
+            <h2 class="section-title">Request Free <span class="text-gold">Consultancy</span></h2>
+            <p>Start your journey to a more intelligent, secure, and luxurious home today.</p>
+            <form id="lead-form" class="contact-form">
+              <div class="form-group">
+                <input type="text" name="name" placeholder="Full Name" required>
+              </div>
+              <div class="form-group">
+                <input type="email" name="email" placeholder="Email Address" required>
+              </div>
+              <div class="form-group">
+                <textarea name="message" placeholder="Tell us about your project" rows="4"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Send Request</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-bottom">
+          <p>&copy; 2026 Domotics. West Palm Beach, FL.</p>
+        </div>
+      </div>
+    </footer>
+
+  </body>
+</html>
